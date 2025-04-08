@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>online quiz system</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      padding: 2rem;
+    }
+    .section {
+      background: white;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    }
+    input {
+      display: block;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 0.6rem 1rem;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="section">
+    <h2>Add Question</h2>
+    <input type="text" id="question" placeholder="Question" />
+    <input type="text" id="optionA" placeholder="Option A" />
+    <input type="text" id="optionB" placeholder="Option B" />
+    <input type="text" id="optionC" placeholder="Option C" />
+    <input type="text" id="optionD" placeholder="Option D" />
+    <input type="number" id="correctOption" placeholder="Correct Option (1-4)" min="1" max="4" />
+    <button onclick="addQuestion()">Add Question</button>
+  </div>
+
+  <div class="section">
+    <h2>View Questions</h2>
+    <button onclick="loadQuestions()">Load All Questions</button>
+    <ul id="questionList"></ul>
+  </div>
+
+  <div class="section">
+    <button onclick="startQuiz()">Start Quiz</button>
+  </div>
+
+  <script>
+    
+    const token = localStorage.getItem("token") || "dummy-token";
+
+    function addQuestion() {
+      const questionText = document.getElementById("question").value.trim();
+      const optionA = document.getElementById("optionA").value.trim();
+      const optionB = document.getElementById("optionB").value.trim();
+      const optionC = document.getElementById("optionC").value.trim();
+      const optionD = document.getElementById("optionD").value.trim();
+      const correctOption = parseInt(document.getElementById("correctOption").value);
+
+      if (!questionText || !optionA || !optionB || !optionC || !optionD || isNaN(correctOption)) {
+        alert("Please fill in all fields correctly.");
+        return;
+      }
+
+      fetch('/question', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token
+        },
+        body: JSON.stringify({
+          questionText,
+          optionA,
+          optionB,
+          optionC,
+          optionD,
+          correctOption
+        })
+      })
+      .then(res => res.text())
+      .then(msg => {
+        alert(msg);
+        
+        document.getElementById("question").value = "";
+        document.getElementById("optionA").value = "";
+        document.getElementById("optionB").value = "";
+        document.getElementById("optionC").value = "";
+        document.getElementById("optionD").value = "";
+        document.getElementById("correctOption").value = "";
+      });
+    }
+
+    function loadQuestions() {
+      fetch('/question', {
+        headers: {
+          'Authorization': token
+        }
+      })
+      .then(res => res.json())
+      .then(questions => {
+        const list = document.getElementById("questionList");
+        list.innerHTML = "";
+        questions.forEach(q => {
+          const li = document.createElement("li");
+          li.textContent = `${q.id || ''}. ${q.questionText}`;
+          list.appendChild(li);
+        });
+      })
+      .catch(err => {
+        alert("Error loading questions: " + err);
+      });
+    }
+
+    function startQuiz() {
+      window.location.href = "Quiz.html";
+    }
+  </script>
+
+</body>
+</html>
